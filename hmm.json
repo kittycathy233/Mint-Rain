@@ -2,8 +2,8 @@
   "dependencies": [
     {
       "name": "hxcpp",
-      "type": "git",
-      "url": "https://github.com/kittycathy233/hxcpp"
+      "type": "haxelib",
+      "version": "4.3.2"
     },
     {
       "name": "lime",
@@ -18,12 +18,17 @@
     {
       "name": "flixel",
       "type": "haxelib",
-      "version": "5.9.0"
+      "version": "6.1.0"
     },
     {
       "name": "flixel-addons",
       "type": "haxelib",
       "version": "3.3.2"
+    },
+    {
+      "name": "flixel-ui",
+      "type": "haxelib",
+      "version": "2.6.4"
     },
     {
       "name": "flixel-tools",
@@ -59,7 +64,7 @@
     {
       "name": "hxvlc",
       "type": "haxelib",
-      "version": "2.0.1"
+      "version": "2.2.2"
     },
     {
       "name": "flxgif",
@@ -82,17 +87,28 @@
       "version": "0.2.0"
     },
     {
+      "name": "extension-androidtools",
+      "type": "haxelib",
+      "version": "2.2.2"
+    },
+    {
       "name": "funkin.vis",
       "type": "git",
       "url": "https://github.com/FunkinCrew/funkVis",
-      "ref": "22b1ce089dd924f15cdc4632397ef3504d464e90",
-      "skipDependencies": true
+      "ref": "22b1ce089dd924f15cdc4632397ef3504d464e90"
     },
     {
       "name": "grig.audio",
       "type": "git",
       "url": "https://gitlab.com/haxe-grig/grig.audio.git",
       "ref": "cbf91e2180fd2e374924fe74844086aab7891666"
+    },
+    {
+      "name": "spine-haxe",
+      "type": "git",
+      "dir": "spine-haxe",
+      "ref": "cd726af62b8cbf12ba47c6c0f68d8e04451cf162",
+      "url": "https://github.com/EsotericSoftware/spine-runtimes/"
     }
   ]
 }

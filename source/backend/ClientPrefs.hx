@@ -353,8 +353,9 @@ class ClientPrefs {
 	public static function toggleVolumeKeys(?turnOn:Bool = true)
 	{
 		final emptyArray = [];
-		FlxG.sound.muteKeys = (!Controls.instance.mobileC && turnOn) ? TitleState.muteKeys : emptyArray;
-		FlxG.sound.volumeDownKeys = (!Controls.instance.mobileC && turnOn) ? TitleState.volumeDownKeys : emptyArray;
-		FlxG.sound.volumeUpKeys = (!Controls.instance.mobileC && turnOn) ? TitleState.volumeUpKeys : emptyArray;
+		// 禁用Flixel的默认音量键处理，使用自定义VolumeManager
+		FlxG.sound.muteKeys = emptyArray;
+		FlxG.sound.volumeDownKeys = emptyArray;
+		FlxG.sound.volumeUpKeys = emptyArray;
 	}
 }

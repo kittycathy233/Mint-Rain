@@ -103,6 +103,9 @@ class MusicBeatState extends FlxState
 		removeTouchPad();
 		removeMobileControls();
 		
+		// 清理音量管理器
+		VolumeManager.getInstance().cleanup();
+		
 		super.destroy();
 	}
 
@@ -119,6 +122,9 @@ class MusicBeatState extends FlxState
 		if(!_psychCameraInitialized) initPsychCamera();
 
 		super.create();
+
+		// 初始化音量管理器
+		VolumeManager.getInstance().init(this);
 
 		if(!skip) {
 			openSubState(new CustomFadeTransition(0.5, true));
@@ -162,6 +168,9 @@ class MusicBeatState extends FlxState
 		}
 
 		if(FlxG.save.data != null) FlxG.save.data.fullscreen = FlxG.fullscreen;
+		
+		// 更新音量管理器
+		VolumeManager.getInstance().update(elapsed);
 		
 		stagesFunc(function(stage:BaseStage) {
 			stage.update(elapsed);

@@ -17,7 +17,7 @@ import backend.ClientPrefs;
 
 import openfl.geom.Matrix;
 import openfl.display.BitmapData;
-import flixel.system.FlxSound;
+import flixel.sound.FlxSound;
 import flixel.util.FlxAxes;
 import flixel.FlxSubState;
 import flixel.input.FlxInput;

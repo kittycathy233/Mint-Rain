@@ -2548,7 +2548,7 @@ function showEventDebug(eventName:String, values:Array<String>, strumTime:Float)
 				persistentDraw = false;
 				FlxTimer.globalManager.clear();
 				FlxTween.globalManager.clear();
-				FlxG.camera.setFilters([]);
+				FlxG.camera.filters = [];
 
 				if(GameOverSubstate.deathDelay > 0)
 				{

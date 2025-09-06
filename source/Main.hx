@@ -175,10 +175,21 @@ class Main extends Sprite
 
 		var game:FlxGame = new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate,
 			game.skipSplash, game.startFullscreen);
-		#if BASE_GAME_FILES
-		@:privateAccess
-		game._customSoundTray = backend.FunkinSoundTray;
+		
+		// 禁用Flixel的默认声音托盘，避免与自定义音量系统冲突
+		#if !FLX_NO_SOUND_TRAY
+		try {
+			@:privateAccess
+			if (game.soundTray != null) {
+				game.soundTray.visible = false;
+				game.soundTray.active = false;
+			}
+		} catch (e:Dynamic) {
+			// 如果soundTray访问失败，忽略错误继续运行
+			trace("Warning: Could not disable default sound tray: " + e);
+		}
 		#end
+		
 		addChild(game);
 
 		fpsVar = new FPSCounter(10, 3, 0xFFFFFF);
@@ -265,6 +276,27 @@ class Main extends Sprite
 		// 保存当前音量
 		originalVolume = FlxG.sound.volume;
 		
+		// 通知VolumeManager进入后台模式
+		#if (cpp || neko || hl)
+		try {
+			var volumeManager = Type.resolveClass("backend.VolumeManager");
+			if (volumeManager != null) {
+				var getInstance = Reflect.field(volumeManager, "getInstance");
+				if (getInstance != null) {
+					var instance = Reflect.callMethod(volumeManager, getInstance, []);
+					if (instance != null) {
+						var setBackgroundMode = Reflect.field(instance, "setBackgroundMode");
+						if (setBackgroundMode != null) {
+							Reflect.callMethod(instance, setBackgroundMode, [true]);
+						}
+					}
+				}
+			}
+		} catch (e:Dynamic) {
+			// 如果VolumeManager不存在，使用原来的逻辑
+		}
+		#end
+		
 		// 创建降低音量的动画
 		backgroundVolumeTween = FlxTween.tween(FlxG.sound, {volume: ClientPrefs.data.backgroundVolumeLevel}, 1, {
 			ease: FlxEase.quadOut,
@@ -285,6 +317,27 @@ class Main extends Sprite
 			backgroundVolumeTween.cancel();
 			backgroundVolumeTween = null;
 		}
+		
+		// 通知VolumeManager退出后台模式
+		#if (cpp || neko || hl)
+		try {
+			var volumeManager = Type.resolveClass("backend.VolumeManager");
+			if (volumeManager != null) {
+				var getInstance = Reflect.field(volumeManager, "getInstance");
+				if (getInstance != null) {
+					var instance = Reflect.callMethod(volumeManager, getInstance, []);
+					if (instance != null) {
+						var setBackgroundMode = Reflect.field(instance, "setBackgroundMode");
+						if (setBackgroundMode != null) {
+							Reflect.callMethod(instance, setBackgroundMode, [false]);
+						}
+					}
+				}
+			}
+		} catch (e:Dynamic) {
+			// 如果VolumeManager不存在，使用原来的逻辑
+		}
+		#end
 		
 		// 创建恢复音量的动画
 		backgroundVolumeTween = FlxTween.tween(FlxG.sound, {volume: originalVolume}, 0.5, {
