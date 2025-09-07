@@ -28,6 +28,7 @@ class CustomVolumeBar extends FlxGroup
     
     // 状态跟踪
     private var isVisible:Bool = false;
+    private var changeSource:String = "音量";
     
     public function new()
     {
@@ -92,6 +93,7 @@ class CustomVolumeBar extends FlxGroup
     
     public function show(volumeChanged:Bool = false, playSound:Bool = true, changeSource:String = "音量"):Void
     {
+        this.changeSource = changeSource;
         // 更新音量显示
         updateVolumeDisplay();
         
@@ -109,7 +111,7 @@ class CustomVolumeBar extends FlxGroup
         // 只在音量条隐藏时才播放显示动画
         // 设置提示文本 - 无论是否可见都要更新
         if (hintText != null) {
-            hintText.text = changeSource;
+            hintText.text = this.changeSource;
         }
         
         if (!isVisible)
@@ -232,8 +234,8 @@ class CustomVolumeBar extends FlxGroup
         }
         else
         {
-            if (changeSource != null && changeSource != "") {
-                volumeText.text = changeSource + " " + volumePercent + "%";
+            if (this.changeSource != null && this.changeSource != "") {
+                volumeText.text = this.changeSource + ": " + volumePercent + "%";
             } else {
                 volumeText.text = "音量: " + volumePercent + "%";
             }
@@ -284,12 +286,6 @@ class CustomVolumeBar extends FlxGroup
         if (hideTimer != null) hideTimer.destroy();
         if (showTween != null) showTween.cancel();
         if (hideTween != null) hideTween.cancel();
-        super.destroy();
-    }
-}ncel();
-        super.destroy();
-    }
-}deTween.cancel();
         super.destroy();
     }
 }

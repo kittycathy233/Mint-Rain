@@ -1,33 +1,34 @@
 package objects;
 
+import flixel.FlxSprite;
+import flixel.util.FlxColor;
+import flixel.text.FlxText;
+import flixel.FlxG;
+import openfl.display.Shape;
+
 class CheckboxThingie extends FlxSprite
 {
-	public var sprTracker:FlxSprite;
+	public var sprTracker:FlxText;
 	public var daValue(default, set):Bool;
 	public var copyAlpha:Bool = true;
 	public var offsetX:Float = 0;
 	public var offsetY:Float = 0;
+	public var checkboxID:Int = 0;
+
 	public function new(x:Float = 0, y:Float = 0, ?checked = false) {
 		super(x, y);
 
-		frames = Paths.getSparrowAtlas('checkboxanim');
-		animation.addByPrefix("unchecked", "checkbox0", 24, false);
-		animation.addByPrefix("unchecking", "checkbox anim reverse", 24, false);
-		animation.addByPrefix("checking", "checkbox anim0", 24, false);
-		animation.addByPrefix("checked", "checkbox finish", 24, false);
+		makeGraphic(40, 40, FlxColor.TRANSPARENT, true);
 
 		antialiasing = ClientPrefs.data.antialiasing;
-		setGraphicSize(Std.int(0.9 * width));
 		updateHitbox();
 
-		animationFinished(checked ? 'checking' : 'unchecking');
-		animation.finishCallback = animationFinished;
 		daValue = checked;
 	}
 
 	override function update(elapsed:Float) {
 		if (sprTracker != null) {
-			setPosition(sprTracker.x - 130 + offsetX, sprTracker.y + 30 + offsetY);
+			setPosition(FlxG.width - 80, sprTracker.y + (sprTracker.height - height) / 2 + offsetY);
 			if(copyAlpha) {
 				alpha = sprTracker.alpha;
 			}
@@ -36,29 +37,28 @@ class CheckboxThingie extends FlxSprite
 	}
 
 	private function set_daValue(check:Bool):Bool {
+		daValue = check;
+		
+		var shape = new Shape();
+		shape.graphics.lineStyle(2, 0xFF999999);
+		shape.graphics.drawRect(0, 0, width, height);
+
 		if(check) {
-			if(animation.curAnim.name != 'checked' && animation.curAnim.name != 'checking') {
-				animation.play('checking', true);
-				offset.set(34, 25);
-			}
-		} else if(animation.curAnim.name != 'unchecked' && animation.curAnim.name != 'unchecking') {
-			animation.play("unchecking", true);
-			offset.set(25, 28);
+			shape.graphics.beginFill(0xFF33B5E5); // Holo Blue
+			shape.graphics.drawRect(0, 0, width, height);
+			shape.graphics.endFill();
+
+			// Draw checkmark
+			shape.graphics.lineStyle(4, FlxColor.WHITE);
+			shape.graphics.moveTo(10, height / 2);
+			shape.graphics.lineTo(width / 2 - 2, height - 10);
+			shape.graphics.lineTo(width - 10, 10);
 		}
+		
+		graphic.bitmap.fillRect(graphic.bitmap.rect, FlxColor.TRANSPARENT);
+		graphic.bitmap.draw(shape);
+		dirty = true;
+
 		return check;
-	}
-
-	private function animationFinished(name:String)
-	{
-		switch(name)
-		{
-			case 'checking':
-				animation.play('checked', true);
-				offset.set(3, 12);
-
-			case 'unchecking':
-				animation.play('unchecked', true);
-				offset.set(0, 2);
-		}
 	}
 }

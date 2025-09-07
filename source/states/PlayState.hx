@@ -59,8 +59,7 @@ import crowplexus.hscript.Printer;
 import lime.app.Application;
 import backend.Native;
 
-import funkin.vis.dsp.SpectralAnalyzer;
-import funkin.vis.audioclip.frontends.LimeAudioClip;
+
 import objects.Bar as Bar;
 
 /**
@@ -363,23 +362,24 @@ class PlayState extends MusicBeatState
 	// 添加一个变量用于平滑血条
 	private var smoothHealth:Float = 1;
 
-	public var audioAnalyzer:SpectralAnalyzer;
+	// public var audioAnalyzer:SpectralAnalyzer;
 
 	public function initAnalyzer(barCount:Int, maxDelta:Float = 0.01, peakHold:Int = 30) {
 		@:privateAccess
 		if (FlxG.sound.music == null || FlxG.sound.music._channel == null || FlxG.sound.music._channel.__audioSource == null) return;
 
-		@:privateAccess
-		audioAnalyzer = new SpectralAnalyzer(FlxG.sound.music._channel.__audioSource, barCount, maxDelta, peakHold);
+		// @:privateAccess
+		// audioAnalyzer = new SpectralAnalyzer(FlxG.sound.music._channel.__audioSource, barCount, maxDelta, peakHold);
 
-		#if desktop
-		audioAnalyzer.fftN = 256;
-		#end
+		// #if desktop
+		// audioAnalyzer.fftN = 256;
+		// #end
 	}
 
 	public function getAudioLevels() {
-		var levels = audioAnalyzer.getLevels();
-		return [for (i in levels) i.value];
+		// var levels = audioAnalyzer.getLevels();
+		// return [for (i in levels) i.value];
+		return [];
 	}
 
 	override public function create()

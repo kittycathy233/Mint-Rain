@@ -128,6 +128,14 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = onChangeFPSCounter;
 
+		var option:Option = new Option("Menu BG Color",
+			"Changes the background color of the options menu.",
+			'optionsBGColor',
+			STRING,
+			['Default', 'Black', 'Gray', 'Red', 'Green', 'Blue']);
+		addOption(option);
+		option.onChange = onChangeBGColor;
+
 		//新版lime跟git库的不同，故临时禁用此项，之后也许会改
 		/*#if native
 		var option:Option = new Option("VSync",
@@ -305,6 +313,28 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 	{
 		if(Main.fpsVar != null)
 			Main.fpsVar.visible = ClientPrefs.data.showFPS;
+	}
+
+	function onChangeBGColor()
+	{
+		var colorMap:Map<String, Int> = [
+			'Default' => 0x00BFFF,
+			'Black' => 0x000000,
+			'Gray' => 0x808080,
+			'Red' => 0xFF0000,
+			'Green' => 0x00FF00,
+			'Blue' => 0x0000FF
+		];
+
+		var color:Int = colorMap.get(ClientPrefs.data.optionsBGColor);
+
+		var optionsState:OptionsState = cast(FlxG.state, OptionsState);
+		if (optionsState != null && optionsState.bg != null) {
+			optionsState.bg.color = color;
+		}
+		if (bg != null) { // bg in BaseOptionsMenu
+			bg.color = color;
+		}
 	}
 
 	/*#if native

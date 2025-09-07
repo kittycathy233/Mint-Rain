@@ -1,5 +1,7 @@
 package options;
 
+import objects.AttachedText;
+
 typedef Keybind = {
 	keyboard:String,
 	gamepad:String
@@ -18,7 +20,7 @@ enum OptionType {
 
 class Option
 {
-	public var child:Alphabet;
+	public var child:AttachedText;
 	public var text(get, set):String;
 	public var onChange:Void->Void = null; //Pressed enter (on Bool type options) or pressed/held left/right (on other types)
 	public var type:OptionType = BOOL;
@@ -132,7 +134,11 @@ class Option
 		if(child != null)
 		{
 			_text = newValue;
-			child.text = LanguageBasic.getPhrase('setting_$_translationKey-${getValue()}', _text);
+			var value = getValue();
+			if (value is String && value.length > 0)
+				child.text = LanguageBasic.getPhrase('setting_$_translationKey-${value}', _text);
+			else
+				child.text = _text;
 			return _text;
 		}
 		return null;

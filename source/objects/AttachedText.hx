@@ -1,17 +1,18 @@
 package objects;
 
-class AttachedText extends Alphabet
+import flixel.text.FlxText;
+import flixel.FlxSprite;
+
+class AttachedText extends FlxText
 {
 	public var offsetX:Float = 0;
 	public var offsetY:Float = 0;
 	public var sprTracker:FlxSprite;
 	public var copyVisible:Bool = true;
 	public var copyAlpha:Bool = false;
-	public function new(text:String = "", ?offsetX:Float = 0, ?offsetY:Float = 0, ?bold = false, ?scale:Float = 1) {
-		super(0, 0, text, bold);
 
-		this.setScale(scale);
-		this.isMenuItem = false;
+	public function new(text:String = "", ?offsetX:Float = 0, ?offsetY:Float = 0) {
+		super(0, 0, 0, text);
 		this.offsetX = offsetX;
 		this.offsetY = offsetY;
 	}

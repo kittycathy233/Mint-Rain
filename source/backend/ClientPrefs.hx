@@ -139,6 +139,7 @@ import states.TitleState;
 	public var showNPS:Bool = true; // Show NPS in the HUD
 	public var showResultScreen:Bool = true; // Show the result screen after finishing a song
 	public var comboSprDisplay:Bool = false; //据说这是官方废稿，我不确定
+	public var optionsBGColor:String = 'Default';
 	
 	public var backgroundVolume:Bool = true; // 是否启用后台降音
 	public var backgroundVolumeLevel:Float = 0.2; // 后台音量级别

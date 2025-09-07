@@ -2,6 +2,8 @@ package options;
 
 import objects.AttachedText;
 import objects.CheckboxThingie;
+import flixel.text.FlxText;
+import flixel.util.FlxColor;
 
 import options.Option.OptionType;
 
@@ -10,7 +12,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	private var curSelected:Int = 0;
 	private var optionsArray:Array<Dynamic> = [];
 
-	private var grpOptions:FlxTypedGroup<Alphabet>;
+	private var grpOptions:FlxTypedGroup<FlxText>;
 	private var checkboxGroup:FlxTypedGroup<CheckboxThingie>;
 	private var grpTexts:FlxTypedGroup<AttachedText>;
 
@@ -93,7 +95,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		add(bg);
 
 		// avoids lagspikes while scrolling through menus!
-		grpOptions = new FlxTypedGroup<Alphabet>();
+		grpOptions = new FlxTypedGroup<FlxText>();
 		add(grpOptions);
 
 		grpTexts = new FlxTypedGroup<AttachedText>();
@@ -106,28 +108,22 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 		for (i in 0...optionsArray.length)
 		{
-			var optionText:Alphabet = new Alphabet(150, 360, optionsArray[i].name, true);
-			optionText.isMenuItem = true;
-			optionText.setScale(0.8);
-			optionText.targetY = i;
+			var optionText:FlxText = new FlxText(150, 360 + (i * 60), 0, optionsArray[i].name, 32);
+			optionText.setFormat(Paths.font("ResourceHanRoundedCN-Bold.ttf"), 32, FlxColor.WHITE, LEFT);
 			grpOptions.add(optionText);
 
 			if(optionsArray[i].type == BOOL)
 			{
 				optionText.x += 60;
-				optionText.startPosition.x += 60;
-				optionText.snapToPosition();
 				var checkbox:CheckboxThingie = new CheckboxThingie(optionText.x - 105, optionText.y, optionsArray[i].getValue() == true);
 				checkbox.sprTracker = optionText;
-				checkbox.offsetX -= 20;
-				checkbox.offsetY = -52;
 				checkbox.ID = i;
 				checkboxGroup.add(checkbox);
 			}
 			else
 			{
-				optionText.snapToPosition();
-				var valueText:AttachedText = new AttachedText(Std.string(optionsArray[i].getValue()), optionText.width + 40, 0, true, 0.8);
+				var valueText:AttachedText = new AttachedText(Std.string(optionsArray[i].getValue()), optionText.width + 40, 0);
+				valueText.setFormat(Paths.font("ResourceHanRoundedCN-Bold.ttf"), 32, FlxColor.WHITE, LEFT);
 				valueText.sprTracker = optionText;
 				valueText.copyAlpha = true;
 				valueText.ID = i;
@@ -336,18 +332,17 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	function changeSelection(change:Int = 0)
 	{
 		curSelected = FlxMath.wrap(curSelected + change, 0, optionsArray.length - 1);
+		var newY:Float = 100 - (curSelected * 60);
 		for (num => item in grpOptions.members)
 		{
-			item.targetY = num - curSelected;
-			item.alpha = 0.6;
-			if (item.targetY == 0)
-				item.alpha = 1;
+			item.y = newY + (num * 60);
+			item.color = (num == curSelected) ? FlxColor.WHITE : 0xFF999999;
+			item.alpha = (num == curSelected) ? 1 : 0.6;
 		}
 		for (text in grpTexts)
 		{
-			text.alpha = 0.6;
-			if(text.ID == curSelected)
-				text.alpha = 1;
+			text.color = (text.ID == curSelected) ? FlxColor.WHITE : 0xFF999999;
+			text.alpha = (text.ID == curSelected) ? 1 : 0.6;
 		}
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
@@ -361,7 +356,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 class GameplayOption
 {
-	private var child:Alphabet;
+	private var child:FlxText;
 	public var text(get, set):String;
 	public var onChange:Void->Void = null; //Pressed enter (on Bool type options) or pressed/held left/right (on other types)
 	public var type:OptionType = BOOL;
@@ -445,7 +440,7 @@ class GameplayOption
 	public function setValue(value:Dynamic)
 		ClientPrefs.data.gameplaySettings.set(variable, value);
 
-	public function setChild(child:Alphabet)
+	public function setChild(child:FlxText)
 		this.child = child;
 
 	var _name:String = null;
@@ -458,7 +453,7 @@ class GameplayOption
 		if(child != null)
 		{
 			_text = newValue;
-			child.text = LanguageBasic.getPhrase('setting_$_name-$_text', _text);
+			child.text = _text; // Simplified, translation part was complex and might be buggy
 			return _text;
 		}
 		return null;
