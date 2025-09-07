@@ -33,8 +33,20 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	public var bg:FlxSprite;
 	private var titleText:FlxText;
 
+	// 滚动相关变量
+	private var scrollBar:FlxSprite;
+	private var scrollThumb:FlxSprite;
+	private var scrollY:Float = 0;
+	private var maxScrollY:Float = 0;
+	private var visibleAreaHeight:Float = 0;
+	private var itemSpacing:Float = 60;
+	private var scrollTween:FlxTween;
+
 	public function new()
 	{
+		// 提前初始化 optionsArray，这样子类就可以在调用 super() 之前使用 addOption
+		if(optionsArray == null) optionsArray = [];
+		
 		controls.isInSubstate = true;
 		super();
 
@@ -47,15 +59,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 		bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0xFF1a1a1a);
 		add(bg);
-
-		grpOptions = new FlxTypedGroup<FlxText>();
-		add(grpOptions);
-
-		grpTexts = new FlxTypedGroup<AttachedText>();
-		add(grpTexts);
-
-		checkboxGroup = new FlxTypedGroup<CheckboxThingie>();
-		add(checkboxGroup);
 
 		titleText = new FlxText(0, 20, FlxG.width, title, 32);
 		titleText.setFormat(Paths.font("ResourceHanRoundedCN-Bold.ttf"), 32, FlxColor.WHITE, CENTER);
@@ -71,14 +74,26 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		descText.setFormat(Paths.font("ResourceHanRoundedCN-Bold.ttf"), 24, FlxColor.WHITE, LEFT);
 		add(descText);
 
+		grpOptions = new FlxTypedGroup<FlxText>();
+		add(grpOptions);
+
+		grpTexts = new FlxTypedGroup<AttachedText>();
+		add(grpTexts);
+
+		checkboxGroup = new FlxTypedGroup<CheckboxThingie>();
+		add(checkboxGroup);
+
 		selector = new FlxSprite(0, 0).makeGraphic(FlxG.width, 4, 0xFF33B5E5); // Holo Blue
 		add(selector);
 
-		var startY:Float = 100;
-		var spacing:Float = 60;
+		// 计算可视区域高度
+		visibleAreaHeight = descBox.y - 80; // 从标题下方到描述框上方
+
+		var startY:Float = 80;
+		itemSpacing = 60;
 		for (i in 0...optionsArray.length)
 		{
-			var optionText:FlxText = new FlxText(40, startY + i * spacing, FlxG.width - 80, optionsArray[i].name, 28);
+			var optionText:FlxText = new FlxText(40, startY + i * itemSpacing, FlxG.width - 80, optionsArray[i].name, 28);
 			optionText.setFormat(Paths.font("ResourceHanRoundedCN-Bold.ttf"), 28, FlxColor.WHITE, LEFT);
 			grpOptions.add(optionText);
 
@@ -103,6 +118,13 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			updateTextFrom(optionsArray[i]);
 		}
 
+		// 计算最大滚动距离
+		var totalHeight = optionsArray.length * itemSpacing;
+		maxScrollY = Math.max(0, totalHeight - visibleAreaHeight + 100);
+
+		// 创建滚动条
+		createScrollBar();
+
 		changeSelection();
 		reloadCheckboxes();
 		
@@ -113,6 +135,101 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		if(optionsArray == null || optionsArray.length < 1) optionsArray = [];
 		optionsArray.push(option);
 		return option;
+	}
+
+	function createScrollBar() {
+		if(maxScrollY <= 0) return; // 不需要滚动条
+
+		// 滚动条背景
+		scrollBar = new FlxSprite(FlxG.width - 20, 80).makeGraphic(8, Std.int(visibleAreaHeight), 0xFF333333);
+		add(scrollBar);
+
+		// 滚动条滑块
+		var thumbHeight = Math.max(20, (visibleAreaHeight / (maxScrollY + visibleAreaHeight)) * visibleAreaHeight);
+		scrollThumb = new FlxSprite(FlxG.width - 20, 80).makeGraphic(8, Std.int(thumbHeight), 0xFF33B5E5);
+		add(scrollThumb);
+	}
+
+	function updateScrollBar() {
+		if(scrollThumb == null || maxScrollY <= 0) return;
+
+		var scrollPercent = scrollY / maxScrollY;
+		var maxThumbY = scrollBar.y + scrollBar.height - scrollThumb.height;
+		scrollThumb.y = scrollBar.y + scrollPercent * (maxThumbY - scrollBar.y);
+	}
+
+	function scrollToItem(itemIndex:Int) {
+		if(maxScrollY <= 0) return;
+
+		var targetY = itemIndex * itemSpacing;
+		var viewportTop = scrollY;
+		var viewportBottom = scrollY + visibleAreaHeight - 100;
+
+		var newScrollY = scrollY;
+
+		// 如果选中项在视口上方
+		if(targetY < viewportTop) {
+			newScrollY = targetY - 50; // 留一些边距
+		}
+		// 如果选中项在视口下方
+		else if(targetY > viewportBottom) {
+			newScrollY = targetY - visibleAreaHeight + 150; // 留一些边距
+		}
+
+		newScrollY = FlxMath.bound(newScrollY, 0, maxScrollY);
+
+		if(newScrollY != scrollY) {
+			if(scrollTween != null) scrollTween.cancel();
+			scrollTween = FlxTween.tween(this, {scrollY: newScrollY}, 0.3, {
+				ease: FlxEase.quadOut,
+				onUpdate: function(tween:FlxTween) {
+					updateScrollPosition();
+				}
+			});
+		}
+	}
+
+	function updateScrollPosition() {
+		// 直接更新各个成员的 y 坐标
+		var offsetY = -scrollY;
+		
+		// 更新选项文本的位置
+		if(grpOptions != null) {
+			for(i in 0...grpOptions.members.length) {
+				var item = grpOptions.members[i];
+				if(item != null) {
+					item.y = 80 + i * itemSpacing + offsetY;
+				}
+			}
+		}
+		
+		// 更新值文本的位置
+		if(grpTexts != null) {
+			for(text in grpTexts.members) {
+				if(text != null && text.sprTracker != null) {
+					text.y = text.sprTracker.y + (text.sprTracker.height - text.height) / 2;
+				}
+			}
+		}
+		
+		// 更新复选框的位置
+		if(checkboxGroup != null) {
+			for(checkbox in checkboxGroup.members) {
+				if(checkbox != null && checkbox.sprTracker != null) {
+					checkbox.y = checkbox.sprTracker.y + (checkbox.sprTracker.height - checkbox.height) / 2;
+				}
+			}
+		}
+		
+		// 更新选择器的位置
+		if(selector != null && curSelected >= 0 && curSelected < grpOptions.members.length) {
+			var item = grpOptions.members[curSelected];
+			if(item != null) {
+				selector.y = item.y + item.height;
+			}
+		}
+		
+		updateScrollBar();
 	}
 
 	var nextAccept:Int = 5;
@@ -426,7 +543,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		}
 	}
 	
-	function changeSelection(change:Int = 0)
+	public function changeSelection(change:Int = 0)
 	{
 		if(optionsArray == null || optionsArray.length <= 0) return;
 		
@@ -447,14 +564,18 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		}
 
 		curOption = optionsArray[curSelected];
-		FlxG.sound.play(Paths.sound('scrollMenu'));
+		
+		// 滚动到当前选中的项目
+		scrollToItem(curSelected);
+		
+		if(change != 0) FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
 
-	function reloadCheckboxes()
+	public function reloadCheckboxes()
 		for (checkbox in checkboxGroup)
 			checkbox.daValue = Std.string(optionsArray[checkbox.checkboxID].getValue()) == 'true';
 	
-	function refreshAllTexts() {
+	public function refreshAllTexts() {
 		if(titleText != null) titleText.text = title;
 	
 		for (i in 0...grpOptions.length) {
