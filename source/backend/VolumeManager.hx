@@ -7,6 +7,7 @@ import flixel.input.keyboard.FlxKey;
 /**
  * 全局音量管理器
  * 监听游戏音量控制并显示音量条，支持丝滑调整和长按连续调整
+ * 仅在桌面平台使用，其他平台使用Flixel默认soundtray
  */
 class VolumeManager
 {
@@ -33,9 +34,16 @@ class VolumeManager
     
     public static function getInstance():VolumeManager
     {
+        #if desktop
         if (instance == null)
             instance = new VolumeManager();
         return instance;
+        #else
+        // 非桌面平台返回空实例，不执行任何操作
+        if (instance == null)
+            instance = new VolumeManager();
+        return instance;
+        #end
     }
     
     private function new()
@@ -47,6 +55,7 @@ class VolumeManager
     
     public function init(state:FlxState):Void
     {
+        #if desktop
         currentState = state;
         
         // 创建音量条
@@ -63,10 +72,14 @@ class VolumeManager
         // 重置音量状态
         lastVolume = FlxG.sound.volume;
         lastMuted = FlxG.sound.muted;
+        #else
+        // 非桌面平台不执行任何操作
+        #end
     }
     
     public function update(elapsed:Float):Void
     {
+        #if desktop
         if (volumeBar == null) return;
         
         // 检查音量控制键状态
@@ -89,6 +102,9 @@ class VolumeManager
             // 保存音量设置
             saveVolumeSettings();
         }
+        #else
+        // 非桌面平台不执行任何操作
+        #end
     }
     
     private function checkVolumeKeys(elapsed:Float):Void
@@ -234,25 +250,37 @@ class VolumeManager
     
     public function cleanup():Void
     {
+        #if desktop
         if (volumeBar != null && currentState != null)
         {
             if (currentState.members.contains(volumeBar))
                 currentState.remove(volumeBar);
         }
+        #else
+        // 非桌面平台不执行任何操作
+        #end
     }
     
 
     
     public function showVolumeBar():Void
     {
+        #if desktop
         if (volumeBar != null && !isInBackgroundMode)
             volumeBar.show(false, false); // volumeChanged=false, playSound=false
+        #else
+        // 非桌面平台不执行任何操作
+        #end
     }
     
     public function hideVolumeBar():Void
     {
+        #if desktop
         if (volumeBar != null)
             volumeBar.hide();
+        #else
+        // 非桌面平台不执行任何操作
+        #end
     }
     
     /**
@@ -261,6 +289,7 @@ class VolumeManager
      */
     public function setBackgroundMode(isBackground:Bool):Void
     {
+        #if desktop
         if (isBackground && !isInBackgroundMode)
         {
             // 进入后台模式，保存当前音量
@@ -283,6 +312,9 @@ class VolumeManager
                 volumeBar.show(false, false, "(前台恢复)");
             }
         }
+        #else
+        // 非桌面平台不执行任何操作
+        #end
     }
     
     /**
@@ -295,11 +327,13 @@ class VolumeManager
     
     public function destroy():Void
     {
+        #if desktop
         if (volumeBar != null)
         {
             volumeBar.destroy();
             volumeBar = null;
         }
+        #end
         instance = null;
     }
 }

@@ -176,7 +176,8 @@ class Main extends Sprite
 		var game:FlxGame = new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate,
 			game.skipSplash, game.startFullscreen);
 		
-		// 禁用Flixel的默认声音托盘，避免与自定义音量系统冲突
+		// 仅在桌面平台禁用Flixel的默认声音托盘，避免与自定义音量系统冲突
+		#if desktop
 		#if !FLX_NO_SOUND_TRAY
 		try {
 			@:privateAccess
@@ -188,6 +189,7 @@ class Main extends Sprite
 			// 如果soundTray访问失败，忽略错误继续运行
 			trace("Warning: Could not disable default sound tray: " + e);
 		}
+		#end
 		#end
 		
 		addChild(game);
@@ -276,7 +278,8 @@ class Main extends Sprite
 		// 保存当前音量
 		originalVolume = FlxG.sound.volume;
 		
-		// 通知VolumeManager进入后台模式
+		// 仅在桌面平台通知VolumeManager进入后台模式
+		#if desktop
 		#if (cpp || neko || hl)
 		try {
 			var volumeManager = Type.resolveClass("backend.VolumeManager");
@@ -295,6 +298,7 @@ class Main extends Sprite
 		} catch (e:Dynamic) {
 			// 如果VolumeManager不存在，使用原来的逻辑
 		}
+		#end
 		#end
 		
 		// 创建降低音量的动画
@@ -318,7 +322,8 @@ class Main extends Sprite
 			backgroundVolumeTween = null;
 		}
 		
-		// 通知VolumeManager退出后台模式
+		// 仅在桌面平台通知VolumeManager退出后台模式
+		#if desktop
 		#if (cpp || neko || hl)
 		try {
 			var volumeManager = Type.resolveClass("backend.VolumeManager");
@@ -337,6 +342,7 @@ class Main extends Sprite
 		} catch (e:Dynamic) {
 			// 如果VolumeManager不存在，使用原来的逻辑
 		}
+		#end
 		#end
 		
 		// 创建恢复音量的动画

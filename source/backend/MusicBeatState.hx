@@ -103,8 +103,10 @@ class MusicBeatState extends FlxState
 		removeTouchPad();
 		removeMobileControls();
 		
-		// 清理音量管理器
+		// 仅在桌面平台清理音量管理器
+		#if desktop
 		VolumeManager.getInstance().cleanup();
+		#end
 		
 		super.destroy();
 	}
@@ -123,8 +125,10 @@ class MusicBeatState extends FlxState
 
 		super.create();
 
-		// 初始化音量管理器
+		// 仅在桌面平台初始化音量管理器
+		#if desktop
 		VolumeManager.getInstance().init(this);
+		#end
 
 		if(!skip) {
 			openSubState(new CustomFadeTransition(0.5, true));
@@ -169,8 +173,10 @@ class MusicBeatState extends FlxState
 
 		if(FlxG.save.data != null) FlxG.save.data.fullscreen = FlxG.fullscreen;
 		
-		// 更新音量管理器
+		// 仅在桌面平台更新音量管理器
+		#if desktop
 		VolumeManager.getInstance().update(elapsed);
+		#end
 		
 		stagesFunc(function(stage:BaseStage) {
 			stage.update(elapsed);

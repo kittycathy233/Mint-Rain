@@ -353,10 +353,27 @@ class ClientPrefs {
 	}
 	public static function toggleVolumeKeys(?turnOn:Bool = true)
 	{
+		#if desktop
 		final emptyArray = [];
-		// 禁用Flixel的默认音量键处理，使用自定义VolumeManager
+		// 仅在桌面平台禁用Flixel的默认音量键处理，使用自定义VolumeManager
 		FlxG.sound.muteKeys = emptyArray;
 		FlxG.sound.volumeDownKeys = emptyArray;
 		FlxG.sound.volumeUpKeys = emptyArray;
+		#else
+		// 非桌面平台使用Flixel默认的音量键处理
+		if (turnOn)
+		{
+			FlxG.sound.muteKeys = keyBinds.get('volume_mute');
+			FlxG.sound.volumeDownKeys = keyBinds.get('volume_down');
+			FlxG.sound.volumeUpKeys = keyBinds.get('volume_up');
+		}
+		else
+		{
+			final emptyArray = [];
+			FlxG.sound.muteKeys = emptyArray;
+			FlxG.sound.volumeDownKeys = emptyArray;
+			FlxG.sound.volumeUpKeys = emptyArray;
+		}
+		#end
 	}
 }

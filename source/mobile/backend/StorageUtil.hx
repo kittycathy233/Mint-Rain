@@ -52,31 +52,80 @@ class StorageUtil
 	}
 
 	#if android
-	// always force path due to haxe
+	// Android 12+ 兼容的存储路径
 	public static function getExternalStorageDirectory():String
+	{
+		// Android 12+ 使用应用专用外部存储目录
+		if (AndroidVersion.SDK_INT >= AndroidVersionCode.S) // Android 12 (API 31)
+		{
+			var appSpecificDir = AndroidContext.getExternalFilesDir();
+			if (appSpecificDir != null)
+				return haxe.io.Path.addTrailingSlash(appSpecificDir);
+		}
+		
+		// 回退到传统路径（Android 11及以下）
 		return '/sdcard/.MintRhythm Extended/';
+	}
 
 	public static function requestPermissions():Void
 	{
+		// Android 13+ (API 33) 使用细分媒体权限
 		if (AndroidVersion.SDK_INT >= AndroidVersionCode.TIRAMISU)
-			AndroidPermissions.requestPermissions(['READ_MEDIA_IMAGES', 'READ_MEDIA_VIDEO', 'READ_MEDIA_AUDIO', 'READ_MEDIA_VISUAL_USER_SELECTED']);
-		else
+		{
+			AndroidPermissions.requestPermissions([
+				'READ_MEDIA_IMAGES', 
+				'READ_MEDIA_VIDEO', 
+				'READ_MEDIA_AUDIO', 
+				'READ_MEDIA_VISUAL_USER_SELECTED'
+			]);
+		}
+		// Android 6-12 使用传统存储权限
+		else if (AndroidVersion.SDK_INT >= AndroidVersionCode.M) // Android 6 (API 23)
+		{
 			AndroidPermissions.requestPermissions(['READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE']);
+		}
 
-		if (!AndroidEnvironment.isExternalStorageManager())
-			AndroidSettings.requestSetting('MANAGE_APP_ALL_FILES_ACCESS_PERMISSION');
+		// Android 11+ 请求所有文件访问权限（如果需要）
+		if (AndroidVersion.SDK_INT >= AndroidVersionCode.R && !AndroidEnvironment.isExternalStorageManager()) // Android 11 (API 30)
+		{
+			try 
+			{
+				AndroidSettings.requestSetting('MANAGE_APP_ALL_FILES_ACCESS_PERMISSION');
+			}
+			catch (e:Dynamic)
+			{
+				trace('Failed to request MANAGE_APP_ALL_FILES_ACCESS_PERMISSION: ${e.message}');
+			}
+		}
 
-		if ((AndroidVersion.SDK_INT >= AndroidVersionCode.TIRAMISU
-			&& !AndroidPermissions.getGrantedPermissions().contains('android.permission.READ_MEDIA_IMAGES'))
-			|| (AndroidVersion.SDK_INT < AndroidVersionCode.TIRAMISU
-				&& !AndroidPermissions.getGrantedPermissions().contains('android.permission.READ_EXTERNAL_STORAGE')))
+		// 检查权限状态
+		var hasPermission = false;
+		if (AndroidVersion.SDK_INT >= AndroidVersionCode.TIRAMISU)
+		{
+			hasPermission = AndroidPermissions.getGrantedPermissions().contains('android.permission.READ_MEDIA_IMAGES') ||
+							AndroidPermissions.getGrantedPermissions().contains('android.permission.READ_MEDIA_AUDIO');
+		}
+		else if (AndroidVersion.SDK_INT >= AndroidVersionCode.M)
+		{
+			hasPermission = AndroidPermissions.getGrantedPermissions().contains('android.permission.READ_EXTERNAL_STORAGE');
+		}
+		else
+		{
+			hasPermission = true; // Android 6以下默认有权限
+		}
+
+		if (!hasPermission)
+		{
 			CoolUtil.showPopUp(LanguageBasic.getPhrase('permissions_message', 'If you accepted the permissions you are all good!\nIf you didn\'t then expect a crash\nPress OK to see what happens'),
 				LanguageBasic.getPhrase('mobile_notice', "Notice!"));
+		}
 
+		// 创建应用存储目录
 		try
 		{
-			if (!FileSystem.exists(StorageUtil.getStorageDirectory()))
-				FileSystem.createDirectory(StorageUtil.getStorageDirectory());
+			var storageDir = StorageUtil.getStorageDirectory();
+			if (!FileSystem.exists(storageDir))
+				FileSystem.createDirectory(storageDir);
 		}
 		catch (e:Dynamic)
 		{
@@ -84,15 +133,21 @@ class StorageUtil
 			lime.system.System.exit(1);
 		}
 
+		// 创建外部存储目录（如果可访问）
 		try
 		{
-			if (!FileSystem.exists(StorageUtil.getExternalStorageDirectory() + 'mods'))
-				FileSystem.createDirectory(StorageUtil.getExternalStorageDirectory() + 'mods');
+			var externalDir = StorageUtil.getExternalStorageDirectory();
+			if (!FileSystem.exists(externalDir))
+				FileSystem.createDirectory(externalDir);
+				
+			var modsDir = externalDir + 'mods';
+			if (!FileSystem.exists(modsDir))
+				FileSystem.createDirectory(modsDir);
 		}
 		catch (e:Dynamic)
 		{
-			CoolUtil.showPopUp(LanguageBasic.getPhrase('create_directory_error', 'Please create directory to\n{1}\nPress OK to close the game', [StorageUtil.getExternalStorageDirectory()]), LanguageBasic.getPhrase('mobile_error', "Error!"));
-			lime.system.System.exit(1);
+			// Android 12+ 可能无法访问外部存储，这是正常的
+			trace('Could not create external storage directory (this is normal on Android 12+): ${e.message}');
 		}
 	}
 	#end

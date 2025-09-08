@@ -875,9 +875,17 @@ class NoteSplashEditorState extends MusicBeatState
         super.destroy();
 
         FlxG.sound.music.volume = 1;
+        #if desktop
+        // 桌面平台禁用默认音量键，使用自定义VolumeManager
+        FlxG.sound.muteKeys = [];
+        FlxG.sound.volumeDownKeys = [];
+        FlxG.sound.volumeUpKeys = [];
+        #else
+        // 非桌面平台恢复默认音量键
         FlxG.sound.muteKeys = [FlxKey.ZERO];
         FlxG.sound.volumeDownKeys = [FlxKey.NUMPADMINUS, FlxKey.MINUS];
         FlxG.sound.volumeUpKeys = [FlxKey.NUMPADPLUS, FlxKey.PLUS];
+        #end
     }
 
     public static function parseTxt(content:String):NoteSplashConfig
